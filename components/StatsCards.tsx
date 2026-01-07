@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrendingUp, TrendingDown, Wallet, Edit2, Activity } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Edit2, Activity, BarChart3 } from 'lucide-react';
 import { PortfolioStats } from '../types';
 
 interface StatsCardsProps {
@@ -24,75 +24,68 @@ export const StatsCards: React.FC<StatsCardsProps> = ({ stats, onEditBalance }) 
   const isProfitable = stats.totalRealizedPnl >= 0;
   const isFloatingProfitable = stats.unrealizedPnl >= 0;
 
+  const Card = ({ title, value, subtext, icon: Icon, colorClass, highlight, action }: any) => (
+    <div className="bg-slate-900/40 border border-white/5 p-8 rounded-[2rem] shadow-sm hover:border-white/10 transition-all group flex flex-col justify-between h-full relative overflow-hidden">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-slate-500 text-xs font-black uppercase tracking-widest">{title}</h3>
+        <div className={`p-2.5 rounded-xl bg-white/5 ${colorClass} group-hover:scale-110 transition-transform`}>
+          <Icon size={18} />
+        </div>
+      </div>
+      <div>
+        <div className="text-3xl font-black text-white tracking-tighter mb-2 flex items-baseline gap-2">
+          {value}
+          {highlight && <span className="text-xs font-bold text-slate-500">{highlight}</span>}
+        </div>
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-slate-400 font-medium">{subtext}</p>
+          {action}
+        </div>
+      </div>
+      <div className={`absolute bottom-0 left-0 h-1 transition-all duration-700 w-0 group-hover:w-full opacity-30 ${colorClass.replace('text', 'bg')}`}></div>
+    </div>
+  );
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-      {/* Current Balance USDT */}
-      <div className="bg-gray-900 border border-gray-800 p-6 rounded-xl shadow-lg relative group">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-gray-400 text-sm font-medium">Balance Actual</h3>
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={onEditBalance}
-              className="p-1.5 hover:bg-gray-800 rounded-lg text-gray-500 hover:text-blue-400 transition-colors"
-              title="Ajustar balance manualmente"
-            >
-              <Edit2 className="w-4 h-4" />
-            </button>
-            <Wallet className="text-blue-500 w-5 h-5" />
-          </div>
-        </div>
-        <div className="text-2xl font-bold text-white">{formatUsdt(stats.currentUsdtBalance)} <span className="text-sm text-gray-500">USDT</span></div>
-        <div className="text-xs text-gray-500 mt-2">
-          Precio Promedio: <span className="text-blue-400 font-mono">{formatCurrency(stats.averageBuyPrice)}</span>
-        </div>
-      </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <Card 
+        title="Balance Actual"
+        value={formatUsdt(stats.currentUsdtBalance)}
+        highlight="USDT"
+        subtext={`Promedio: ${formatCurrency(stats.averageBuyPrice)}`}
+        icon={Wallet}
+        colorClass="text-indigo-400"
+        action={
+          <button onClick={onEditBalance} className="p-2 hover:bg-white/5 rounded-lg text-slate-500 hover:text-indigo-400 transition-colors">
+            <Edit2 size={14} />
+          </button>
+        }
+      />
 
-      {/* Floating Profit/Loss (Gain from Price Differences) */}
-      <div className="bg-gray-900 border border-gray-800 p-6 rounded-xl shadow-lg overflow-hidden relative">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-gray-400 text-sm font-medium">Ganancia Flotante</h3>
-          <Activity className={`${isFloatingProfitable ? 'text-green-500' : 'text-red-500'} w-5 h-5`} />
-        </div>
-        <div className={`text-2xl font-bold ${isFloatingProfitable ? 'text-green-400' : 'text-red-400'}`}>
-          {isFloatingProfitable ? '+' : ''}{formatCurrency(stats.unrealizedPnl)}
-        </div>
-        <div className="text-xs text-gray-500 mt-2">
-           Diferencia vs. Precio Promedio
-        </div>
-        <div className={`absolute bottom-0 left-0 h-1 transition-all duration-1000 ${isFloatingProfitable ? 'bg-green-500' : 'bg-red-500'}`} style={{ width: '100%' }}></div>
-      </div>
+      <Card 
+        title="Ganancia Flotante"
+        value={`${isFloatingProfitable ? '+' : ''}${formatCurrency(stats.unrealizedPnl)}`}
+        subtext="Valor vs. Precio Promedio"
+        icon={Activity}
+        colorClass={isFloatingProfitable ? 'text-emerald-400' : 'text-rose-400'}
+      />
 
-      {/* Realized PnL (Sales) */}
-      <div className="bg-gray-900 border border-gray-800 p-6 rounded-xl shadow-lg">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-gray-400 text-sm font-medium">Ganancia Realizada</h3>
-          {isProfitable ? (
-            <TrendingUp className="text-green-500 w-5 h-5" />
-          ) : (
-            <TrendingDown className="text-red-500 w-5 h-5" />
-          )}
-        </div>
-        <div className={`text-2xl font-bold ${isProfitable ? 'text-green-400' : 'text-red-400'}`}>
-          {isProfitable ? '+' : ''}{formatCurrency(stats.totalRealizedPnl)}
-        </div>
-        <div className="text-xs text-gray-500 mt-2">
-          Ganancia neta en ventas cerradas
-        </div>
-      </div>
+      <Card 
+        title="Ganancia Realizada"
+        value={`${isProfitable ? '+' : ''}${formatCurrency(stats.totalRealizedPnl)}`}
+        subtext="Operaciones cerradas"
+        icon={isProfitable ? TrendingUp : TrendingDown}
+        colorClass={isProfitable ? 'text-emerald-400' : 'text-rose-400'}
+      />
       
-       {/* Estimate Total Value */}
-       <div className="bg-gray-900 border border-gray-800 p-6 rounded-xl shadow-lg">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-gray-400 text-sm font-medium">Valor Estimado Hoy</h3>
-          <div className="text-blue-500 font-bold text-[10px] bg-blue-900/30 px-2 py-1 rounded">MXN</div>
-        </div>
-        <div className="text-2xl font-bold text-gray-200">
-             {formatCurrency(stats.estimatedValue)}
-        </div>
-        <div className="text-xs text-gray-500 mt-2">
-          Si vendieras todo ahora
-        </div>
-      </div>
+      <Card 
+        title="Valor Estimado"
+        value={formatCurrency(stats.estimatedValue)}
+        highlight="MXN"
+        subtext="Liquidación inmediata"
+        icon={BarChart3}
+        colorClass="text-indigo-400"
+      />
     </div>
   );
 };
